@@ -40,5 +40,10 @@
 # debug information files
 *.dwo
 
+# IDE
+.idea
+
+cmake-build-debug
+
 # Copilot Instructions
 copilot-instructions.md
