@@ -1,5 +1,9 @@
 /*
  * @author: Viktor Shishmarev
- * @date: 12.10.2025
+ * @date: 14.10.2025
  * @description:
  */
+
+int main() {
+    return 0;
+}

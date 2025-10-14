@@ -25,15 +25,24 @@ endif()
 
 target_link_libraries(threadbytetree PUBLIC Threads::Threads)
 
-add_executable(threadbytetree_tests
+add_executable(threadbytetree_tests_main
         tests/main.cpp
 )
 
-target_link_libraries(threadbytetree_tests
+add_executable(threadbytetree_tests_comparator
+        tests/comparator.cpp
+)
+
+target_link_libraries(threadbytetree_tests_main
+        PRIVATE threadbytetree Threads::Threads
+)
+
+target_link_libraries(threadbytetree_tests_comparator
         PRIVATE threadbytetree Threads::Threads
 )
 
 include(CTest)
 if (BUILD_TESTING)
-    add_test(NAME basic COMMAND threadbytetree_tests)
+    add_test(NAME main COMMAND threadbytetree_tests_main)
+    add_test(NAME comparator COMMAND threadbytetree_tests_comparator)
 endif()
