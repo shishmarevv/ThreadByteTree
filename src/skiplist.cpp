@@ -7,6 +7,7 @@
 #include "skiplist.h"
 
 #include <stdexcept>
+#include <random>
 
 namespace tbt {
     bool checkProbability(const float probability) {
@@ -14,7 +15,9 @@ namespace tbt {
     }
 
     bool toss(const float probability) {
-        return (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) < probability;
+        thread_local std::mt19937 generator(std::random_device{}());
+        std::uniform_real_distribution distribution(0.0f, 1.0f);
+        return distribution(generator) < probability;
     }
 
     void List::clear() const {
