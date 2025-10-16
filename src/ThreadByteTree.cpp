@@ -1,12 +1,4 @@
-/*
- * @author: Viktor Shishmarev
- * @date: 16.10.2025
- * @description:
- */
-
 #include "ThreadByteTree.h"
-#include <thread>
-#include <future>
 
 namespace tbt {
 
@@ -14,17 +6,11 @@ namespace tbt {
         : skipList(maxLevel, probability) {}
 
     void ThreadByteTree::put(const ByteVector& key, const ByteVector& value) {
-        std::thread([this, key, value] {
-            skipList.Insert(key, value);
-        }).detach();
+        skipList.Insert(key, value);
     }
 
     ByteVector ThreadByteTree::get(const ByteVector& key) const {
-        auto future = std::async(std::launch::async, [this, key] {
-            return skipList.Search(key);
-        });
-
-        return future.get();
+        return skipList.Search(key);
     }
 
 }

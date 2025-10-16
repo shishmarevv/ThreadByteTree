@@ -1,13 +1,9 @@
-/*
- * @author: Viktor Shishmarev
- * @date: 16.10.2025
- * @description:
- */
-
 #include "skiplist.h"
 
 #include <stdexcept>
 #include <random>
+#include <shared_mutex>
+#include <mutex>
 
 namespace tbt {
     bool checkProbability(const float probability) {
@@ -41,35 +37,35 @@ namespace tbt {
     }
 
     List::~List() {
-        std::lock_guard lock(mux);
-
+        std::unique_lock<std::shared_mutex> lock(mux);
         clear();
         delete head;
     }
 
     ByteVector List::Search(const ByteVector &key) const {
+        std::shared_lock<std::shared_mutex> lock(mux);
         Node *current = head;
         for (std::size_t i = currentLevel + 1; i-- > 0;) {
-            while (current -> Forward[i] != nullptr && ByteVectorLess(current -> Key, key)) {
-                current = current -> Forward[i];
+            while (current->Forward[i] != nullptr && ByteVectorLess(current->Forward[i]->Key, key)) {
+                current = current->Forward[i];
             }
         }
-        if (current -> Forward[0] != nullptr && ByteVectorEqual(current -> Forward[0] -> Key, key)) {
-            return current -> Forward[0] -> Value;
+        Node* next = current->Forward[0];
+        if (next != nullptr && ByteVectorEqual(next->Key, key)) {
+            return next->Value;
         }
         return {};
     }
 
     void List::Insert(const ByteVector& key, const ByteVector& value) {
-        std::size_t newLevel = 0;
+        std::unique_lock<std::shared_mutex> lock(mux);
 
-        while (newLevel < maxLevel && toss(probability)) {
+        std::size_t newLevel = 0;
+        while ((newLevel + 1) < maxLevel && toss(probability)) {
             newLevel++;
         }
 
         if (currentLevel < newLevel) {
-            std::lock_guard lock(mux);
-            head -> Forward.resize(newLevel + 1, nullptr);
             currentLevel = newLevel;
         }
 
@@ -77,24 +73,23 @@ namespace tbt {
         std::vector<Node*> update(currentLevel + 1, nullptr);
 
         for (std::size_t i = currentLevel + 1; i-- > 0;) {
-            while (current -> Forward[i] != nullptr && ByteVectorLess(current -> Key, key)) {
-                current = current -> Forward[i];
+            while (current->Forward[i] != nullptr && ByteVectorLess(current->Forward[i]->Key, key)) {
+                current = current->Forward[i];
             }
             update[i] = current;
         }
 
-        current = current->Forward[0];
+        Node* next = current->Forward[0];
 
-        std::lock_guard lock(mux);
-        if (current == nullptr || !ByteVectorEqual(current->Key, key)) {
-            Node *newNode = new Node(key, value, newLevel);
+        if (next == nullptr || !ByteVectorEqual(next->Key, key)) {
+            Node *newNode = new Node(key, value, newLevel + 1);
 
             for (std::size_t i = 0; i <= newLevel; i++) {
-                newNode -> Forward[i] = update[i] -> Forward[i];
-                update[i] -> Forward[i] = newNode;
+                newNode->Forward[i] = update[i]->Forward[i];
+                update[i]->Forward[i] = newNode;
             }
         } else {
-            current -> Value = value; // Update existing value
+            next->Value = value; // Update existing value
         }
     }
 
