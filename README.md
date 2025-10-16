@@ -32,7 +32,7 @@ Keys and values of this tree are byte[] arrays.
 - `tests/comparator.cpp` — comparator tests.
 - `tests/*_tests.cpp` — split tests for SkipList and ThreadByteTree, including multithreaded scenarios.
 
-## API summary
+## Summary
 - `tbt::List`:
   - `List(std::size_t maxLevel, float probability)` — create a skip list with a given number of levels and a promotion probability in (0,1).
   - `void Insert(const ByteVector& key, const ByteVector& value)` — insert or update a key-value pair.
@@ -79,13 +79,6 @@ Example: build and run the test targets from CLion or via CTest if enabled.
   - `Insert` holds `std::unique_lock` ensuring correct pointer updates and `currentLevel` maintenance.
 - All structural modifications (node insertion, value updates, changing top level) are protected by the exclusive lock.
 - Searches run entirely under a shared lock, preventing races with writers.
-
-## Why ThreadByteTree does not spawn threads internally
-`ThreadByteTree::put` and `get` are synchronous by design. Spawning a new thread for each call would:
-- Change the observable semantics (e.g., a `put` returning before the value is visible to subsequent `get`).
-- Add significant overhead and reduce performance under load.
-- Provide no benefit over external concurrency: the data structure is already safe for many threads calling `put`/`get` concurrently.
-If asynchronous behavior is desired, a separate API (e.g., `putAsync`/`getAsync` returning `std::future`) could be added without changing the semantics of the basic methods.
 
 ## Key/value notes
 - Keys and values are arbitrary `std::vector<uint8_t>`.
