@@ -90,6 +90,3 @@ If asynchronous behavior is desired, a separate API (e.g., `putAsync`/`getAsync`
 ## Key/value notes
 - Keys and values are arbitrary `std::vector<uint8_t>`.
 - Key ordering is lexicographic on unsigned bytes (see `ByteVectorLess`). For numeric keys, prefer fixed-width big-endian encoding to preserve natural numeric order.
-
-## License
-MIT (or replace with your actual license if different).
