@@ -11,7 +11,7 @@
 #include "comparator.h"
 
 using tbt::ByteVector;
-using tbt::ByteVectorCompare;
+using tbt::ByteVectorLess;
 
 static ByteVector bv(std::initializer_list<int> il) {
     ByteVector v;
@@ -70,8 +70,8 @@ int main() {
 
     auto run = [&](const TestCase& tc) {
         ++total;
-        const bool res = ByteVectorCompare(tc.left, tc.right);
-        const bool res_rev = ByteVectorCompare(tc.right, tc.left);
+        const bool res = ByteVectorLess(tc.left, tc.right);
+        const bool res_rev = ByteVectorLess(tc.right, tc.left);
         const bool eq = (tc.left == tc.right);
 
         bool ok = (res == tc.expectLess) && !(res && res_rev);
@@ -96,7 +96,7 @@ int main() {
         auto a = bv({1});
         auto b = bv({1, 1});
         auto c = bv({2});
-        bool ok = ByteVectorCompare(a, b) && ByteVectorCompare(b, c) && ByteVectorCompare(a, c);
+        bool ok = ByteVectorLess(a, b) && ByteVectorLess(b, c) && ByteVectorLess(a, c);
         if (!ok) {
             std::cerr << "FAIL: transitivity check a<b<c => a<c\n"
                       << "  a=" << vec_to_str(a) << ", b=" << vec_to_str(b)

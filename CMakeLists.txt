@@ -8,12 +8,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Threads REQUIRED)
 
 add_library(threadbytetree STATIC
-        src/api.cpp
+        src/ThreadByteTree.cpp
         src/comparator.cpp
+        src/skiplist.cpp
 )
 
 target_include_directories(threadbytetree
         PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
