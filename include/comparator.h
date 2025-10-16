@@ -24,5 +24,7 @@ namespace tbt{
      *      Unsigned semantics: bytes ≥ 128 compare greater than any smaller unsigned value.
      */
 
-    bool ByteVectorCompare(const ByteVector& leftHand, const ByteVector& rightHand) noexcept;
+    bool ByteVectorLess(const ByteVector& leftHand, const ByteVector& rightHand) noexcept;
+
+    bool ByteVectorEqual(const ByteVector& leftHand, const ByteVector& rightHand) noexcept;
 }

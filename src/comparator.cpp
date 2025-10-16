@@ -7,7 +7,7 @@
 #include "comparator.h"
 
 namespace tbt {
-	bool ByteVectorCompare(const ByteVector& leftHand, const ByteVector& rightHand) noexcept {
+	bool ByteVectorLess(const ByteVector& leftHand, const ByteVector& rightHand) noexcept {
 		const std::size_t leftSize = leftHand.size(), rightSize = rightHand.size();
 
 		for (std::size_t iterate = 0; iterate < leftSize && iterate < rightSize; ++iterate) {
@@ -16,5 +16,19 @@ namespace tbt {
 		}
 
 		return leftSize < rightSize;
+	}
+
+	bool ByteVectorEqual(const ByteVector& leftHand, const ByteVector& rightHand) noexcept{
+		if (leftHand.size() != rightHand.size()) {
+			return false;
+		}
+
+		for (std::size_t iterate = 0; iterate < leftHand.size(); ++iterate) {
+			if (leftHand[iterate] != rightHand[iterate]) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
