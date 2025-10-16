@@ -27,15 +27,23 @@ endif()
 
 target_link_libraries(threadbytetree PUBLIC Threads::Threads)
 
-add_executable(threadbytetree_tests_main
-        tests/main.cpp
+add_executable(threadbytetree_tests_skiplist
+        tests/skiplist_tests.cpp
+)
+
+add_executable(threadbytetree_tests_threadbytetree
+        tests/threadbytetree_tests.cpp
 )
 
 add_executable(threadbytetree_tests_comparator
         tests/comparator.cpp
 )
 
-target_link_libraries(threadbytetree_tests_main
+target_link_libraries(threadbytetree_tests_skiplist
+        PRIVATE threadbytetree Threads::Threads
+)
+
+target_link_libraries(threadbytetree_tests_threadbytetree
         PRIVATE threadbytetree Threads::Threads
 )
 
@@ -45,6 +53,7 @@ target_link_libraries(threadbytetree_tests_comparator
 
 include(CTest)
 if (BUILD_TESTING)
-    add_test(NAME main COMMAND threadbytetree_tests_main)
+    add_test(NAME skiplist COMMAND threadbytetree_tests_skiplist)
+    add_test(NAME threadbytetree COMMAND threadbytetree_tests_threadbytetree)
     add_test(NAME comparator COMMAND threadbytetree_tests_comparator)
 endif()
