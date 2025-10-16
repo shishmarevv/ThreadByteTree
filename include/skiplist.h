@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <comparator.h>
+#include "comparator.h"
 #include <utility>
 #include <vector>
 #include <mutex>
@@ -15,10 +15,11 @@ namespace tbt{
 
     class Node {
         public:
-            ByteVector Data;
+            ByteVector Key;
+            ByteVector Value;
             std::vector<Node*> Forward;
 
-            Node(const ByteVector& data, const std::size_t height): Data(data), Forward(height, nullptr){}
+            Node(const ByteVector& key, const ByteVector& value, const std::size_t height): Key(key), Value(value), Forward(height, nullptr){}
     };
 
     class List {
@@ -26,7 +27,6 @@ namespace tbt{
             Node* head;
             std::size_t maxLevel;
             std::size_t currentLevel;
-            std::size_t size;
             float probability;
             std::mutex mux;
 
@@ -35,14 +35,14 @@ namespace tbt{
             List(std::size_t maxLevel, float probability);
             ~List();
 
-            void Insert(const ByteVector& data);
-            void Remove(const ByteVector& data);
-            Node* Search(const ByteVector& data) const;
+            void Insert(const ByteVector& key, const ByteVector& value);
+            // void Remove(const ByteVector& data);
+            ByteVector Search(const ByteVector& key) const;
 
-            void ReCalibrate();
+            // void ReCalibrate();
 
-            void ChangeProbability(float newProbability);
-            void ChangeMaxLevel(std::size_t newMaxLevel);
+            // void ChangeProbability(float newProbability);
+            // void ChangeMaxLevel(std::size_t newMaxLevel);
     };
 
     bool checkProbability(float probability);

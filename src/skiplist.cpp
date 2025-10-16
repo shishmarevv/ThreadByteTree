@@ -34,11 +34,10 @@ namespace tbt {
             throw std::invalid_argument("probability must be between 0 and 1");
         }
 
-        head = new Node(ByteVector(), maxLevel);
+        head = new Node(ByteVector(), ByteVector(), maxLevel);
         this->maxLevel = maxLevel;
         this->currentLevel = 0;
         this->probability = probability;
-        this->size = 0;
     }
 
     List::~List() {
@@ -48,20 +47,20 @@ namespace tbt {
         delete head;
     }
 
-    Node *List::Search(const ByteVector &data) const {
+    ByteVector List::Search(const ByteVector &key) const {
         Node *current = head;
         for (std::size_t i = currentLevel + 1; i-- > 0;) {
-            while (current -> Forward[i] != nullptr && ByteVectorLess(current -> Data, data)) {
+            while (current -> Forward[i] != nullptr && ByteVectorLess(current -> Key, key)) {
                 current = current -> Forward[i];
             }
         }
-        if (current -> Forward[0] != nullptr && ByteVectorEqual(current -> Forward[0] -> Data, data)) {
-            return current -> Forward[0];
+        if (current -> Forward[0] != nullptr && ByteVectorEqual(current -> Forward[0] -> Key, key)) {
+            return current -> Forward[0] -> Value;
         }
-        return nullptr;
+        return {};
     }
 
-    void List::Insert(const ByteVector &data) {
+    void List::Insert(const ByteVector& key, const ByteVector& value) {
         std::size_t newLevel = 0;
 
         while (newLevel < maxLevel && toss(probability)) {
@@ -78,7 +77,7 @@ namespace tbt {
         std::vector<Node*> update(currentLevel + 1, nullptr);
 
         for (std::size_t i = currentLevel + 1; i-- > 0;) {
-            while (current -> Forward[i] != nullptr && ByteVectorLess(current -> Data, data)) {
+            while (current -> Forward[i] != nullptr && ByteVectorLess(current -> Key, key)) {
                 current = current -> Forward[i];
             }
             update[i] = current;
@@ -86,92 +85,91 @@ namespace tbt {
 
         current = current->Forward[0];
 
-        if (current == nullptr || !ByteVectorEqual(current->Data, data)) {
-            std::lock_guard lock(mux);
-            Node *newNode = new Node(data, newLevel);
+        std::lock_guard lock(mux);
+        if (current == nullptr || !ByteVectorEqual(current->Key, key)) {
+            Node *newNode = new Node(key, value, newLevel);
 
             for (std::size_t i = 0; i <= newLevel; i++) {
                 newNode -> Forward[i] = update[i] -> Forward[i];
                 update[i] -> Forward[i] = newNode;
             }
-            size++;
         } else {
-            // Element already exists, do nothing
+            current -> Value = value; // Update existing value
         }
     }
 
-    void List::Remove(const ByteVector &data) {
-        Node *current = head;
-        std::vector<Node*> update(currentLevel + 1, nullptr);
-
-        for (std::size_t i = currentLevel + 1; i-- > 0;) {
-            while (current -> Forward[i] != nullptr && ByteVectorLess(current -> Data, data)) {
-                current = current -> Forward[i];
-            }
-            update[i] = current;
-        }
-
-        current = current->Forward[0];
-
-        if (current != nullptr && ByteVectorEqual(current -> Data, data)) {
-            std::lock_guard lock(mux);
-            for (std::size_t i = 0; i <= currentLevel; i++) {
-                if (update[i] -> Forward[i] != current) {
-                    break;
-                }
-                update[i] -> Forward[i] = current -> Forward[i];
-            }
-            delete current;
-
-            while (currentLevel > 0 && head -> Forward[currentLevel] == nullptr) {
-                currentLevel--;
-            }
-
-            size--;
-        } else {
-            // Element not found, do nothing
-        }
-    }
-
-    void List::ReCalibrate() {
-        std::lock_guard lock(mux);
-
-        std::vector <ByteVector> elements;
-        Node *current = head;
-        elements.reserve(size);
-
-        while (current -> Forward[0] != nullptr) {
-            current = current -> Forward[0];
-            elements.push_back(current -> Data);
-        }
-
-        clear();
-        head -> Forward.assign(maxLevel, nullptr);
-        currentLevel = 0;
-        size = 0;
-
-        for (const auto &element : elements) {
-            Insert(element);
-        }
-    }
-
-    void List::ChangeProbability(const float newProbability) {
-        if (!checkProbability(probability)) {
-            throw std::invalid_argument("probability must be between 0 and 1");
-        }
-
-        std::lock_guard lock(mux);
-
-        probability = newProbability;
-        ReCalibrate();
-    }
-
-    void List::ChangeMaxLevel(std::size_t newMaxLevel) {
-        std::lock_guard lock(mux);
-
-        maxLevel = newMaxLevel;
-        ReCalibrate();
-    }
-
-
+    // Unnecessary functionality
+    //
+    // void List::Remove(const ByteVector &data) {
+    //     Node *current = head;
+    //     std::vector<Node*> update(currentLevel + 1, nullptr);
+    //
+    //     for (std::size_t i = currentLevel + 1; i-- > 0;) {
+    //         while (current -> Forward[i] != nullptr && ByteVectorLess(current -> Data, data)) {
+    //             current = current -> Forward[i];
+    //         }
+    //         update[i] = current;
+    //     }
+    //
+    //     current = current->Forward[0];
+    //
+    //     if (current != nullptr && ByteVectorEqual(current -> Data, data)) {
+    //         std::lock_guard lock(mux);
+    //         for (std::size_t i = 0; i <= currentLevel; i++) {
+    //             if (update[i] -> Forward[i] != current) {
+    //                 break;
+    //             }
+    //             update[i] -> Forward[i] = current -> Forward[i];
+    //         }
+    //         delete current;
+    //
+    //         while (currentLevel > 0 && head -> Forward[currentLevel] == nullptr) {
+    //             currentLevel--;
+    //         }
+    //
+    //         size--;
+    //     } else {
+    //         // Element not found, do nothing
+    //     }
+    // }
+    //
+    // void List::ReCalibrate() {
+    //     std::lock_guard lock(mux);
+    //
+    //     std::vector <ByteVector> elements;
+    //     Node *current = head;
+    //     elements.reserve(size);
+    //
+    //     while (current -> Forward[0] != nullptr) {
+    //         current = current -> Forward[0];
+    //         elements.push_back(current -> Data);
+    //     }
+    //
+    //     clear();
+    //     head -> Forward.assign(maxLevel, nullptr);
+    //     currentLevel = 0;
+    //     size = 0;
+    //
+    //     for (const auto &element : elements) {
+    //         Insert(element);
+    //     }
+    // }
+    //
+    // void List::ChangeProbability(const float newProbability) {
+    //     if (!checkProbability(probability)) {
+    //         throw std::invalid_argument("probability must be between 0 and 1");
+    //     }
+    //
+    //     std::lock_guard lock(mux);
+    //
+    //     probability = newProbability;
+    //     ReCalibrate();
+    // }
+    //
+    // void List::ChangeMaxLevel(std::size_t newMaxLevel) {
+    //     std::lock_guard lock(mux);
+    //
+    //     maxLevel = newMaxLevel;
+    //     ReCalibrate();
+    // }
 }
